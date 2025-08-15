@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý Link Xịn</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #ff9a9e, #fad0c4, #fad0c4, #a2c2e6);
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        header {
+            text-align: center;
+            background: rgba(0, 0, 0, 0.3);
+            color: #fff;
+            padding: 15px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 800px;
+            margin: 0 auto 20px;
+        }
+        #form-container {
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+            width: 90%;
+            max-width: 800px;
+            margin: 0 auto 20px;
+        }
+        input[type="text"], input[type="url"], select {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        button {
+            background: #ff6f61;
+            color: white;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #e55a50;
+        }
+        #search-container {
+            width: 90%;
+            max-width: 800px;
+            margin: 0 auto 20px;
+        }
+        #search {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        #link-list {
+            width: 90%;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .link-item {
+            background: #fff;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        .link-item a {
+            color: #007bff;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        .link-item a:hover {
+            text-decoration: underline;
+        }
+        .category, .timestamp {
+            font-size: 0.85em;
+            color: #666;
+            margin: 5px 0;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .action-buttons button {
+            width: auto;
+            padding: 8px 15px;
+            font-size: 14px;
+        }
+        .edit-btn { background: #28a745; }
+        .edit-btn:hover { background: #218838; }
+        .delete-btn { background: #dc3545; }
+        .delete-btn:hover { background: #c82333; }
+        .copy-btn { background: #6c757d; }
+        .copy-btn:hover { background: #5a6268; }
+        .expire-notice {
+            color: #ff6f61;
+            font-size: 0.85em;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
+        }
+        .modal-content button {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Website Lưu Trữ Link</h1>
+    </header>
+    <div id="form-container">
+        <input type="text" id="title" placeholder="Tiêu đề link">
+        <input type="url" id="url" placeholder="Link URL">
+        <select id="category">
+            <option value="Công việc">Công việc</option>
+            <option value="Học tập">Học tập</option>
+            <option value="Giải trí">Giải trí</option>
+            <option value="Khác">Khác</option>
+        </select>
+        <select id="expire">
+            <option value="0">Vĩnh viễn</option>
+            <option value="1">1 ngày</option>
+            <option value="7">7 ngày</option>
+            <option value="30">30 ngày</option>
+        </select>
+        <button onclick="addLink()">Thêm Link</button>
+    </div>
+    <div id="search-container">
+        <input type="text" id="search" placeholder="Tìm kiếm theo tiêu đề, link hoặc danh mục..." oninput="searchLinks()">
+    </div>
+    <div id="link-list"></div>
+
+    <div id="edit-modal" class="modal">
+        <div class="modal-content">
+            <h2>Chỉnh sửa Link</h2>
+            <input type="text" id="edit-title" placeholder="Tiêu đề link">
+            <input type="url" id="edit-url" placeholder="Link URL">
+            <select id="edit-category">
+                <option value="Công việc">Công việc</option>
+                <option value="Học tập">Học tập</option>
+                <option value="Giải trí">Giải trí</option>
+                <option value="Khác">Khác</option>
+            </select>
+            <select id="edit-expire">
+                <option value="0">Vĩnh viễn</option>
+                <option value="1">1 ngày</option>
+                <option value="7">7 ngày</option>
+                <option value="30">30 ngày</option>
+            </select>
+            <button onclick="saveEdit()">Lưu</button>
+            <button onclick="closeModal()">Hủy</button>
+        </div>
+    </div>
+
+    <script>
+        let editIndex = null;
+
+        function loadLinks() {
+            const links = JSON.parse(localStorage.getItem('links')) || [];
+            const now = new Date().getTime();
+            const validLinks = links.filter(link => !link.expireTime || link.expireTime > now);
+            localStorage.setItem('links', JSON.stringify(validLinks));
+            displayLinks(validLinks);
+            return validLinks;
+        }
+
+        function displayLinks(links) {
+            const linkList = document.getElementById('link-list');
+            linkList.innerHTML = '';
+            links.forEach((link, index) => {
+                const div = document.createElement('div');
+                div.classList.add('link-item');
+                div.innerHTML = `
+                    <a href="${link.url}" target="_blank">${link.title}</a>
+                    <div class="category">Danh mục: ${link.category}</div>
+                    <div class="timestamp">Thêm lúc: ${link.timestamp}</div>
+                    ${link.expireTime ? `<div class="expire-notice">Hết hạn: ${new Date(link.expireTime).toLocaleString()}</div>` : ''}
+                    <div class="action-buttons">
+                        <button class="edit-btn" onclick="openEditModal(${index})">Sửa</button>
+                        <button class="delete-btn" onclick="deleteLink(${index})">Xóa</button>
+                        <button class="copy-btn" onclick="copyLink('${link.url}')">Sao chép</button>
+                    </div>
+                `;
+                linkList.appendChild(div);
+            });
+        }
+
+        function addLink() {
+            const title = document.getElementById('title').value.trim();
+            const url = document.getElementById('url').value.trim();
+            const category = document.getElementById('category').value;
+            const expireDays = parseInt(document.getElementById('expire').value);
+            if (title && url) {
+                const now = new Date();
+                const timestamp = `${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')} ${now.getDate()}/${now.getMonth() + 1}/${now.getFullYear()}`;
+                const expireTime = expireDays > 0 ? now.getTime() + expireDays * 24 * 60 * 60 * 1000 : null;
+                const links = loadLinks();
+                links.push({ title, url, category, timestamp, expireTime });
+                localStorage.setItem('links', JSON.stringify(links));
+                displayLinks(links);
+                document.getElementById('title').value = '';
+                document.getElementById('url').value = '';
+                document.getElementById('category').value = 'Công việc';
+                document.getElementById('expire').value = '0';
+            }
+        }
+
+        function searchLinks() {
+            const searchTerm = document.getElementById('search').value.toLowerCase();
+            const links = JSON.parse(localStorage.getItem('links')) || [];
+            const filteredLinks = links.filter(link => 
+                link.title.toLowerCase().includes(searchTerm) || 
+                link.url.toLowerCase().includes(searchTerm) ||
+                link.category.toLowerCase().includes(searchTerm)
+            );
+            displayLinks(filteredLinks);
+        }
+
+        function openEditModal(index) {
+            const links = loadLinks();
+            const link = links[index];
+            editIndex = index;
+            document.getElementById('edit-title').value = link.title;
+            document.getElementById('edit-url').value = link.url;
+            document.getElementById('edit-category').value = link.category;
+            document.getElementById('edit-expire').value = link.expireTime ? 
+                Math.round((link.expireTime - new Date().getTime()) / (24 * 60 * 60 * 1000)) : 0;
+            document.getElementById('edit-modal').style.display = 'flex';
+        }
+
+        function saveEdit() {
+            const title = document.getElementById('edit-title').value.trim();
+            const url = document.getElementById('edit-url').value.trim();
+            const category = document.getElementById('edit-category').value;
+            const expireDays = parseInt(document.getElementById('edit-expire').value);
+            if (title && url) {
+                const links = loadLinks();
+                const now = new Date();
+                const timestamp = `${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')} ${now.getDate()}/${now.getMonth() + 1}/${now.getFullYear()}`;
+                const expireTime = expireDays > 0 ? now.getTime() + expireDays * 24 * 60 * 60 * 1000 : null;
+                links[editIndex] = { title, url, category, timestamp, expireTime };
+                localStorage.setItem('links', JSON.stringify(links));
+                displayLinks(links);
+                closeModal();
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('edit-modal').style.display = 'none';
+            editIndex = null;
+        }
+
+        function deleteLink(index) {
+            if (confirm('Bạn có chắc muốn xóa link này?')) {
+                const links = loadLinks();
+                links.splice(index, 1);
+                localStorage.setItem('links', JSON.stringify(links));
+                displayLinks(links);
+            }
+        }
+
+        function copyLink(url) {
+            navigator.clipboard.writeText(url).then(() => {
+                alert('Đã sao chép link: ' + url);
+            });
+        }
+
+        window.onload = loadLinks;
+    </script>
+</body>
+</html>
